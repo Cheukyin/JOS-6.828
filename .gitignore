@@ -15,3 +15,12 @@
 /lab?/
 /sol?/
 /myapi.key
+
+GPATH
+GRTAGS
+GSYMS
+GTAGS
+TAGS
+core
+\#*
+~*
