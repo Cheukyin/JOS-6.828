@@ -8,6 +8,8 @@
 
 #include <kern/console.h>
 
+#include <inc/cga_color.h>
+
 static void cons_intr(int (*proc)(void));
 static void cons_putc(int c);
 
@@ -158,13 +160,19 @@ cga_init(void)
 }
 
 
+//used in printfmt.c:97
+enum ansi_2_cga_color cga_bcolor = black;
+enum ansi_2_cga_color cga_fcolor = white;
 
 static void
 cga_putc(int c)
 {
 	// if no attribute given, then use black on white
-	if (!(c & ~0xFF))
-		c |= 0x0700;
+	/* if (!(c & ~0xFF)) */
+	/* 	c |= 0x0700; */
+
+	c |= (cga_bcolor<<12); //set background color;
+	c |= (cga_fcolor<<8);  //set foreground color;
 
 	switch (c & 0xff) {
 	case '\b':

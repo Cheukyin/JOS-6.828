@@ -7,6 +7,7 @@
 #include <inc/string.h>
 #include <inc/stdarg.h>
 #include <inc/error.h>
+#include <inc/cga_color.h>
 
 /*
  * Space or zero padding and a field width are supported for the numeric
@@ -92,7 +93,43 @@ vprintfmt(void (*putch)(int, void*), void *putdat, const char *fmt, va_list ap)
 		while ((ch = *(unsigned char *) fmt++) != '%') {
 			if (ch == '\0')
 				return;
-			putch(ch, putdat);
+
+			if( ch == '[' )
+			{
+			    unsigned char ansi_fcolor = 0;
+			    unsigned char ansi_bcolor = 0;
+
+			    //defined in console.c:163
+			    extern enum ansi_2_cga_color cga_bcolor;
+			    extern enum ansi_2_cga_color cga_fcolor;
+
+			    ch = *(unsigned char *) fmt++;
+			    if( ch != 'm' )
+			    {
+				    while( ch<='9' && ch>='0' )
+				    {
+					    ansi_fcolor = ansi_fcolor*10 + ch - '0';
+					    ch = *(unsigned char *) fmt++;
+				    }
+				    if( ansi_fcolor>=30 && ansi_fcolor<=37 )
+					    cga_fcolor = ( ansi_fcolor -= 30 );
+
+				    if( ch == ';' )
+				    {
+					ch = *(unsigned char *) fmt++;
+					while( ch<='9' && ch>='0' )
+					{
+						ansi_bcolor = ansi_bcolor*10 + ch - '0';
+						ch = *(unsigned char *) fmt++;
+					}
+					if( ansi_bcolor>=40 && ansi_bcolor<=47 )
+						cga_bcolor = ( ansi_bcolor -= 40 );
+				    }
+			    }
+			}
+
+			else
+			    putch(ch, putdat);
 		}
 
 		// Process a %-escape sequence
@@ -232,6 +269,11 @@ vprintfmt(void (*putch)(int, void*), void *putdat, const char *fmt, va_list ap)
 
 		// escaped '%' character
 		case '%':
+			putch(ch, putdat);
+			break;
+
+		// escaped '[' character
+		case '[':
 			putch(ch, putdat);
 			break;
 
