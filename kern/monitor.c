@@ -63,6 +63,8 @@ mon_backtrace(int argc, char **argv, struct Trapframe *tf)
 	uint32_t eip;
 	struct Eipdebuginfo info;
 
+	int fn_argc = 5;
+
 	cprintf("Stack backtrace:\n");
 
 	while( ebp )
@@ -72,7 +74,8 @@ mon_backtrace(int argc, char **argv, struct Trapframe *tf)
 
 		cprintf("args");
 		int i;
-		for(i=1; i<=5; i++)
+		fn_argc = (fn_argc < 1)? 5 : fn_argc;
+		for(i=1; i<=fn_argc; i++)
 		{
 			cprintf( " %08x", *( ebp+1 +i ) );
 		}
@@ -86,6 +89,8 @@ mon_backtrace(int argc, char **argv, struct Trapframe *tf)
 		cprintf("%d: ", info.eip_line);
 		cprintf("%.*s+", info.eip_fn_namelen, info.eip_fn_name);
 		cprintf("%d\n", eip - info.eip_fn_addr);
+
+		fn_argc = info.eip_fn_narg;
 
 		ebp = (uint32_t *) (*ebp);
 	}
